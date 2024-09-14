@@ -7,102 +7,168 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 // Fetch parking garages data
 async function fetchGarages() {
-    const response = await fetch('/api/garages');
-    const garages = await response.json();
-    return garages;
-}
-
-// Fetch availability reports
-async function fetchReports() {
-    const response = await fetch('/api/reports');
-    const reports = await response.json();
-    return reports;
-}
-
-// Add garage markers to the map
-function addGarageMarkers(garages) {
-    const garageSelect = document.getElementById('garage-select');
-    garages.forEach(garage => {
-        L.marker([garage.latitude, garage.longitude])
-            .bindPopup(`<b>${garage.name}</b><br>Loading availability...`)
-            .addTo(map);
-
-        const option = document.createElement('option');
-        option.value = garage.id;
-        option.textContent = garage.name;
-        garageSelect.appendChild(option);
-    });
-}
-
-// Update garage markers with availability information
-function updateGarageAvailability(reports) {
-    map.eachLayer(layer => {
-        if (layer instanceof L.Marker) {
-            const garageReport = reports.find(report => report.garage_id === layer.garage_id);
-            if (garageReport) {
-                layer.setPopupContent(`<b>${layer.getPopup().getContent().split('<br>')[0]}</b><br>Availability: ${garageReport.availability}`);
-            }
+    try {
+        const response = await fetch('/api/garages');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const garages = await response.json();
+        populateGarageRecords(garages);
+        return garages;
+    } catch (error) {
+        console.error('Error fetching garages:', error);
+        throw error;
+    }
+}
+
+// Populate garage records
+function populateGarageRecords(garages) {
+    const garageRecordsContainer = document.getElementById('garage-records');
+    garageRecordsContainer.innerHTML = '';
+
+    garages.forEach(garage => {
+        const garageElement = document.createElement('div');
+        garageElement.classList.add('garage-record');
+        garageElement.innerHTML = `
+            <h3>${garage.name}</h3>
+            <button onclick="viewGarageDetails(${garage.id})">View Details</button>
+        `;
+        garageRecordsContainer.appendChild(garageElement);
     });
 }
 
-// Submit availability report
-async function submitReport(garageId, availability, latitude, longitude) {
-    const response = await fetch('/api/report', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            garage_id: garageId,
-            availability: availability,
-            latitude: latitude,
-            longitude: longitude
-        }),
+// View garage details
+async function viewGarageDetails(garageId) {
+    try {
+        const response = await fetch(`/api/garage/${garageId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const garageData = await response.json();
+        displayGarageDetails(garageData);
+    } catch (error) {
+        console.error('Error fetching garage details:', error);
+    }
+}
+
+// Display garage details
+function displayGarageDetails(garageData) {
+    const garageElement = document.querySelector(`.garage-record:nth-child(${garageData.id})`);
+    const report = garageData.latest_report;
+    
+    let detailsHTML = `
+        <h3>${garageData.name}</h3>
+        <p><strong>Clearance:</strong> ${garageData.clearance} ft</p>
+        <p><strong>Reservation Times:</strong> ${garageData.reservation_times}</p>
+        <p><strong>Permit Types:</strong> ${garageData.permit_types}</p>
+    `;
+
+    if (report) {
+        detailsHTML += `
+            <p><strong>Availability:</strong> ${report.availability}</p>
+            <p><strong>Last Updated:</strong> ${new Date(report.timestamp).toLocaleString()}</p>
+        `;
+    } else {
+        detailsHTML += '<p>No recent reports available.</p>';
+    }
+
+    detailsHTML += `
+        <button onclick="showSubmitForm(${garageData.id})">Submit Report</button>
+    `;
+
+    garageElement.innerHTML = detailsHTML;
+
+    // Update map view
+    map.setView([garageData.latitude, garageData.longitude], 18);
+}
+
+// Show submit form for a specific garage
+function showSubmitForm(garageId) {
+    const garageElement = document.querySelector(`.garage-record:nth-child(${garageId})`);
+    garageElement.innerHTML += `
+        <form id="submit-form-${garageId}">
+            <select id="availability-${garageId}" required>
+                <option value="">Select availability</option>
+                <option value="empty">Empty</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="full">Full</option>
+            </select>
+            <button type="submit">Submit Report</button>
+        </form>
+    `;
+
+    document.getElementById(`submit-form-${garageId}`).addEventListener('submit', (event) => {
+        event.preventDefault();
+        submitReport(garageId);
     });
-    return response.json();
+}
+
+// Submit a new report
+async function submitReport(garageId) {
+    const availability = document.getElementById(`availability-${garageId}`).value;
+
+    if (!availability) {
+        alert('Please select availability');
+        return;
+    }
+
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const { latitude, longitude } = position.coords;
+            try {
+                const response = await fetch('/api/report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ garage_id: garageId, availability, latitude, longitude }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to submit report: ${response.status} ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                alert('Report submitted successfully.');
+                viewGarageDetails(garageId);
+            } catch (error) {
+                console.error('Error in report submission:', error);
+                alert(`Failed to submit report: ${error.message}`);
+            }
+        }, (error) => {
+            console.error('Geolocation error:', error);
+            alert(`Unable to get your location: ${error.message}. Please enable location services.`);
+        });
+    } else {
+        alert('Geolocation is not supported by your browser');
+    }
 }
 
 // Initialize the app
 async function init() {
-    const garages = await fetchGarages();
-    addGarageMarkers(garages);
-
-    // Update availability every 30 seconds
-    async function updateAvailability() {
-        const reports = await fetchReports();
-        updateGarageAvailability(reports);
+    try {
+        const garages = await fetchGarages();
+        // Add markers for each garage
+        garages.forEach(garage => {
+            L.marker([garage.latitude, garage.longitude])
+             .addTo(map)
+             .bindPopup(`
+                <strong>${garage.name}</strong><br>
+                Clearance: ${garage.clearance} ft<br>
+                Reservation Times: ${garage.reservation_times}<br>
+                Permit Types: ${garage.permit_types}<br>
+                <button onclick="viewGarageDetails(${garage.id})">View Details</button>
+             `);
+        });
+        // Update availability every 30 seconds
+        setInterval(fetchGarages, 30000);
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        alert(`Failed to initialize app: ${error.message}`);
     }
-    updateAvailability();
-    setInterval(updateAvailability, 30000);
-
-    // Handle report submission
-    document.getElementById('submit-report').addEventListener('click', async () => {
-        const garageId = document.getElementById('garage-select').value;
-        const availability = document.getElementById('availability-select').value;
-
-        if (!garageId || !availability) {
-            alert('Please select a garage and availability');
-            return;
-        }
-
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(async (position) => {
-                const { latitude, longitude } = position.coords;
-                try {
-                    await submitReport(garageId, availability, latitude, longitude);
-                    alert('Report submitted successfully');
-                    updateAvailability();
-                } catch (error) {
-                    alert('Error submitting report');
-                }
-            }, () => {
-                alert('Unable to get your location. Please enable location services.');
-            });
-        } else {
-            alert('Geolocation is not supported by your browser');
-        }
-    });
 }
 
+// Start the application
 init();

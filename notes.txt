@@ -1,0 +1,1 @@
+postgresql://neondb_owner:rhzkvP1Sgb2Z@ep-lively-river-a5du0zyo.us-east-2.aws.neon.tech- Database 

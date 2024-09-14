@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Where do I park?</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Where do I park? - Admin</h1>
+        <h2>Texas State University</h2>
+    </header>
+    <main>
+        <div id="admin-content">
+            <h3>Reliability Statistics</h3>
+            <div id="overall-stats"></div>
+            <h4>Top 5 Most Reliable Users</h4>
+            <div id="top-users"></div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 Where do I park? - Texas State University</p>
+    </footer>
+    <script>
+        async function fetchReliabilityStats() {
+            try {
+                const response = await fetch('/api/admin/reliability_stats');
+                const data = await response.json();
+                displayOverallStats(data.overall_stats);
+                displayTopUsers(data.top_users);
+            } catch (error) {
+                console.error('Error fetching reliability stats:', error);
+            }
+        }
+
+        function displayOverallStats(stats) {
+            const overallStatsElement = document.getElementById('overall-stats');
+            overallStatsElement.innerHTML = `
+                <p>Average Reliability: ${(stats.avg_reliability * 100).toFixed(2)}%</p>
+                <p>Minimum Reliability: ${(stats.min_reliability * 100).toFixed(2)}%</p>
+                <p>Maximum Reliability: ${(stats.max_reliability * 100).toFixed(2)}%</p>
+                <p>Total Reports: ${stats.total_reports}</p>
+            `;
+        }
+
+        function displayTopUsers(users) {
+            const topUsersElement = document.getElementById('top-users');
+            topUsersElement.innerHTML = users.map((user, index) => `
+                <p>${index + 1}. User ID: ${user.user_id}
+                   Reliability: ${(user.avg_reliability * 100).toFixed(2)}%,
+                   Reports: ${user.report_count}</p>
+            `).join('');
+        }
+
+        fetchReliabilityStats();
+        setInterval(fetchReliabilityStats, 60000); // Update every minute
+    </script>
+</body>
+</html>

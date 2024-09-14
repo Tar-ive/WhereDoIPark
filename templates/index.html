@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Where do I park? - Texas State University</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="/static/css/styles.css">
@@ -12,26 +12,13 @@
         <h1>Where do I park?</h1>
         <h2>Texas State University</h2>
     </header>
-    <main>
-        <div id="map"></div>
-        <div id="report-form">
-            <h3>Report Parking Availability</h3>
-            <select id="garage-select">
-                <option value="">Select a garage</option>
-            </select>
-            <select id="availability-select">
-                <option value="">Select availability</option>
-                <option value="empty">Empty</option>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="full">Full</option>
-            </select>
-            <button id="submit-report">Submit Report</button>
-        </div>
-    </main>
+    <div id="map"></div>
+    <div id="garage-list">
+        <h3>Parking Garages</h3>
+        <div id="garage-records"></div>
+    </div>
     <footer>
-        <p>&copy; 2023 Where do I park? - Texas State University</p>
+        <p>&copy; 2024 Where do I park? - Texas State University</p>
     </footer>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/static/js/app.js"></script>
