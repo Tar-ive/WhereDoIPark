@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify, current_app
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
-from sqlalchemy.types import TIMESTAMP
 from flask_migrate import Migrate
 import os
 import traceback
@@ -22,8 +21,8 @@ app.config['SQLALCHEMY_ECHO'] = True  # Enable SQL query logging
 
 print("Database URL:", database_url)
 
-# Initialize the database
-db = SQLAlchemy()
+# Import the shared db instance
+from extensions import db
 
 # Initialize the app with SQLAlchemy
 db.init_app(app)
@@ -31,17 +30,20 @@ db.init_app(app)
 migrate = Migrate(app, db)
 print("Database connection initialized successfully.")
 
-# Import models here
+# Import models after initializing db to avoid circular imports
 from models import ParkingGarage, AvailabilityReport
+
 
 # Define routes
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/admin')
 def admin():
     return render_template('admin.html')
+
 
 @app.route('/api/garages', methods=['GET'])
 def get_garages():
@@ -61,6 +63,7 @@ def get_garages():
         current_app.logger.error(f"Traceback: {traceback.format_exc()}")
         return jsonify({'error':
                         'An error occurred while fetching garages'}), 500
+
 
 @app.route('/api/report', methods=['POST'])
 def submit_report():
@@ -85,15 +88,13 @@ def submit_report():
         utc_now = datetime.now(timezone.utc)
 
         # Create a new report
-        new_report = AvailabilityReport(
-            garage_id=garage_id,
-            availability=availability,
-            latitude=latitude,
-            longitude=longitude,
-            timestamp=utc_now,
-            verification_status='pending',
-            is_flagged=False
-        )
+        new_report = AvailabilityReport(garage_id=garage_id,
+                                        availability=availability,
+                                        latitude=latitude,
+                                        longitude=longitude,
+                                        timestamp=utc_now,
+                                        verification_status='pending',
+                                        is_flagged=False)
         db.session.add(new_report)
         db.session.commit()
 
@@ -109,23 +110,24 @@ def submit_report():
         return jsonify(
             {'error': 'An error occurred while submitting the report'}), 500
 
+
 @app.route('/api/reports', methods=['GET'])
 def get_reports():
     try:
         # Subquery to get the latest report for each garage
         latest_reports = db.session.query(
             AvailabilityReport.garage_id,
-            func.max(AvailabilityReport.timestamp).label('max_timestamp')
-        ).group_by(AvailabilityReport.garage_id).subquery()
+            func.max(
+                AvailabilityReport.timestamp).label('max_timestamp')).group_by(
+                    AvailabilityReport.garage_id).subquery()
 
         # Query to join the latest reports with the full report details
         reports = db.session.query(AvailabilityReport).join(
             latest_reports,
             db.and_(
                 AvailabilityReport.garage_id == latest_reports.c.garage_id,
-                AvailabilityReport.timestamp == latest_reports.c.max_timestamp
-            )
-        ).all()
+                AvailabilityReport.timestamp ==
+                latest_reports.c.max_timestamp)).all()
 
         return jsonify([{
             'id': report.id,
@@ -140,7 +142,9 @@ def get_reports():
     except Exception as e:
         current_app.logger.error(f"Error fetching reports: {str(e)}")
         current_app.logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'An error occurred while fetching reports'}), 500
+        return jsonify({'error':
+                        'An error occurred while fetching reports'}), 500
+
 
 @app.route('/api/garage/<int:garage_id>', methods=['GET'])
 def get_garage(garage_id):
@@ -149,7 +153,8 @@ def get_garage(garage_id):
         if not garage:
             return jsonify({'error': 'Garage not found'}), 404
 
-        latest_report = AvailabilityReport.query.filter_by(garage_id=garage_id).order_by(AvailabilityReport.timestamp.desc()).first()
+        latest_report = AvailabilityReport.query.filter_by(garage_id=garage_id)\
+            .order_by(AvailabilityReport.timestamp.desc()).first()
 
         garage_data = {
             'id': garage.id,
@@ -175,7 +180,9 @@ def get_garage(garage_id):
     except Exception as e:
         current_app.logger.error(f"Error fetching garage details: {str(e)}")
         current_app.logger.error(f"Traceback: {traceback.format_exc()}")
-        return jsonify({'error': 'An error occurred while fetching garage details'}), 500
+        return jsonify(
+            {'error': 'An error occurred while fetching garage details'}), 500
+
 
 if __name__ == '__main__':
     with app.app_context():

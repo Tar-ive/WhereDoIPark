@@ -13,6 +13,7 @@ psycopg2-binary = "^2.9.9"
 geopy = "^2.4.1"
 pytz = "^2024.2"
 sqlalchemy = "^2.0.34"
+flask-migrate = "^4.0.7"
 
 
 [build-system]

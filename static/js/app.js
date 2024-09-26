@@ -1,11 +1,10 @@
-// Initialize map
+// app.js
 const map = L.map('map').setView([29.8884, -97.9384], 15); // Texas State University coordinates
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
-// Fetch parking garages data
 async function fetchGarages() {
     try {
         const response = await fetch('/api/garages');
@@ -14,6 +13,7 @@ async function fetchGarages() {
         }
         const garages = await response.json();
         populateGarageRecords(garages);
+        addGarageMarkers(garages);
         return garages;
     } catch (error) {
         console.error('Error fetching garages:', error);
@@ -21,23 +21,24 @@ async function fetchGarages() {
     }
 }
 
-// Populate garage records
 function populateGarageRecords(garages) {
     const garageRecordsContainer = document.getElementById('garage-records');
-    garageRecordsContainer.innerHTML = '';
+    garageRecordsContainer.innerHTML = '<h2>Parking Garages</h2>';
 
     garages.forEach(garage => {
         const garageElement = document.createElement('div');
         garageElement.classList.add('garage-record');
         garageElement.innerHTML = `
             <h3>${garage.name}</h3>
+            <p><strong>Permit Types:</strong> ${garage.permit_types}</p>
+            <p><strong>Clearance:</strong> ${garage.clearance || 'N/A'} ft</p>
+            <p><strong>Reservation Times:</strong> ${garage.reservation_times}</p>
             <button onclick="viewGarageDetails(${garage.id})">View Details</button>
         `;
         garageRecordsContainer.appendChild(garageElement);
     });
 }
 
-// View garage details
 async function viewGarageDetails(garageId) {
     try {
         const response = await fetch(`/api/garage/${garageId}`);
@@ -51,14 +52,13 @@ async function viewGarageDetails(garageId) {
     }
 }
 
-// Display garage details
 function displayGarageDetails(garageData) {
-    const garageElement = document.querySelector(`.garage-record:nth-child(${garageData.id})`);
+    const garageElement = document.querySelector(`.garage-record:nth-child(${garageData.id + 1})`);
     const report = garageData.latest_report;
-    
+
     let detailsHTML = `
         <h3>${garageData.name}</h3>
-        <p><strong>Clearance:</strong> ${garageData.clearance} ft</p>
+        <p><strong>Clearance:</strong> ${garageData.clearance || 'N/A'} ft</p>
         <p><strong>Reservation Times:</strong> ${garageData.reservation_times}</p>
         <p><strong>Permit Types:</strong> ${garageData.permit_types}</p>
     `;
@@ -82,9 +82,8 @@ function displayGarageDetails(garageData) {
     map.setView([garageData.latitude, garageData.longitude], 18);
 }
 
-// Show submit form for a specific garage
 function showSubmitForm(garageId) {
-    const garageElement = document.querySelector(`.garage-record:nth-child(${garageId})`);
+    const garageElement = document.querySelector(`.garage-record:nth-child(${garageId + 1})`);
     garageElement.innerHTML += `
         <form id="submit-form-${garageId}">
             <select id="availability-${garageId}" required>
@@ -105,7 +104,6 @@ function showSubmitForm(garageId) {
     });
 }
 
-// Submit a new report
 async function submitReport(garageId) {
     const availability = document.getElementById(`availability-${garageId}`).value;
 
@@ -132,7 +130,8 @@ async function submitReport(garageId) {
 
                 const result = await response.json();
                 alert('Report submitted successfully.');
-                viewGarageDetails(garageId);
+                await fetchGarages(); // Refresh all garage data
+                viewGarageDetails(garageId); // Refresh the specific garage details
             } catch (error) {
                 console.error('Error in report submission:', error);
                 alert(`Failed to submit report: ${error.message}`);
@@ -146,22 +145,23 @@ async function submitReport(garageId) {
     }
 }
 
-// Initialize the app
+function addGarageMarkers(garages) {
+    garages.forEach(garage => {
+        L.marker([garage.latitude, garage.longitude])
+         .addTo(map)
+         .bindPopup(`
+            <strong>${garage.name}</strong><br>
+            Clearance: ${garage.clearance || 'N/A'} ft<br>
+            Reservation Times: ${garage.reservation_times}<br>
+            Permit Types: ${garage.permit_types}<br>
+            <button onclick="viewGarageDetails(${garage.id})">View Details</button>
+         `);
+    });
+}
+
 async function init() {
     try {
         const garages = await fetchGarages();
-        // Add markers for each garage
-        garages.forEach(garage => {
-            L.marker([garage.latitude, garage.longitude])
-             .addTo(map)
-             .bindPopup(`
-                <strong>${garage.name}</strong><br>
-                Clearance: ${garage.clearance} ft<br>
-                Reservation Times: ${garage.reservation_times}<br>
-                Permit Types: ${garage.permit_types}<br>
-                <button onclick="viewGarageDetails(${garage.id})">View Details</button>
-             `);
-        });
         // Update availability every 30 seconds
         setInterval(fetchGarages, 30000);
     } catch (error) {

@@ -28,6 +28,7 @@ args = "python main.py"
 waitForPort = 5000
 
 [deployment]
+deploymentTarget = "cloudrun"
 run = ["sh", "-c", "python main.py"]
 
 [[ports]]

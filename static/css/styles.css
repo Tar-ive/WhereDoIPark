@@ -1,3 +1,4 @@
+/* styles.css */
 :root {
     --deep-green: #005030;
     --white: #ffffff;
@@ -14,7 +15,8 @@ body {
     font-family: Arial, sans-serif;
     background-color: var(--white);
     color: var(--deep-green);
-    line-height: 1.6;
+    line-height: 1.5;
+    font-size: 16px;
 }
 
 header {
@@ -29,8 +31,9 @@ h1, h2, h3, h4 {
 }
 
 #map {
-    height: 50vh;
     width: 100%;
+    height: 40vh;
+    max-height: 300px;
 }
 
 #garage-list {
@@ -38,34 +41,60 @@ h1, h2, h3, h4 {
     background-color: var(--light-gray);
 }
 
-.garage-record {
+.container {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: -15px;
+    margin-right: -15px;
+}
+
+.col-12, .col-md-6, .col-lg-4 {
+    position: relative;
+    width: 100%;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.card {
     background-color: var(--white);
     border-radius: 5px;
     margin-bottom: 1rem;
-    padding: 1rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    height: 100%;
 }
 
-select, button {
+.card-body {
+    padding: 1rem;
+}
+
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    color: var(--white);
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: var(--deep-green);
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn:hover {
+    background-color: #006040;
+}
+
+.btn-block {
     display: block;
     width: 100%;
-    margin-bottom: 0.5rem;
-    padding: 0.5rem;
-    font-size: 1rem;
-    border: 1px solid var(--deep-green);
-    border-radius: 3px;
-}
-
-button {
-    background-color: var(--deep-green);
-    color: var(--white);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #006040;
 }
 
 footer {
@@ -75,7 +104,7 @@ footer {
     padding: 0.5rem;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 576px) {
     body {
         font-size: 14px;
     }
@@ -85,49 +114,336 @@ footer {
     }
 
     h2 {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
+    }
+
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
     }
 
     #map {
-        height: 40vh;
-    }
-
-    .garage-record {
-        padding: 0.75rem;
-    }
-
-    select, button {
-        font-size: 0.9rem;
-        padding: 0.4rem;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 1023px) {
-    body {
-        font-size: 16px;
-    }
-
-    #map {
-        height: 45vh;
-    }
-}
-
-@media (min-width: 1024px) {
-    body {
-        font-size: 18px;
-    }
-
-    #map {
-        height: 60vh;
+        max-height: 250px;
     }
 
     #garage-list {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
+        padding: 1rem 0;
     }
 
-    .garage-record {
-        width: calc(50% - 0.5rem);
+    .card-body {
+        padding: 0.75rem;
+    }
+}
+
+@media (min-width: 577px) and (max-width: 768px) {
+    body {
+        font-size: 15px;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (min-width: 769px) {
+    .container {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+
+    .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+}
+
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    color: var(--deep-green);
+    font-weight: bold;
+}
+
+.availability-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.btn {
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--deep-green);
+}
+
+.btn-primary:hover {
+    background-color: #006040;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.bg-orange {
+    background-color: #fd7e14;
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+.section-title {
+    font-size: 1.5rem;
+    color: var(--deep-green);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.card-details {
+    padding: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.availability-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25rem;
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.btn {
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--deep-green);
+}
+
+.btn-primary:hover {
+    background-color: #006040;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.bg-orange {
+    background-color: #fd7e14;
+}
+/* Add these styles to your existing styles.css */
+
+.garage-card {
+    margin-bottom: 20px;
+}
+
+.card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+.card-title {
+    margin-bottom: 10px;
+    color: var(--deep-green);
+}
+
+.availability-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.last-updated {
+    font-size: 0.8em;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.card-details {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #ddd;
+}
+
+.btn {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.bg-orange {
+    background-color: #fd7e14;
+}
+
+/* styles.css */
+:root {
+    --primary-color: #005030;
+    --secondary-color: #f8f9fa;
+    --text-color: #333;
+    --border-color: #ddd;
+    --hover-color: #004020;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1, h2, h3 {
+    color: var(--primary-color);
+}
+
+#map {
+    height: 400px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+#garage-records {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.garage-record {
+    background-color: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 15px;
+    transition: box-shadow 0.3s ease;
+}
+
+.garage-record:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.garage-record h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.garage-record p {
+    margin-bottom: 8px;
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: var(--hover-color);
+}
+
+select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+form {
+    margin-top: 15px;
+}
+
+.availability-info {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.last-updated {
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    #garage-records {
+        grid-template-columns: 1fr;
     }
 }
