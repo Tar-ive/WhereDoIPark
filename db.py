@@ -1,6 +1,6 @@
 import os
 import traceback
-from main import app, db, ParkingGarage
+from main import app, db, ParkingGarage 
 
 # Corrected Parking data to populate the database
 parking_data = [
