@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 # Database configuration
 database_url = os.environ.get('DATABASE_URL')
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True  # Enable SQL query logging
 
